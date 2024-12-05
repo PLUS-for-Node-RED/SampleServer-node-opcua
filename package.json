@@ -13,7 +13,8 @@
     "dev-start_lds": "tsc && node dst/src/LocalDiscoveryServer/local-discovery-server.js",
     "dev-debug": "tsc && node --inspect dst/src/server.js",
     "dev-update:node-opcua": "npx rimraf node_modules && npx -y npm-check-updates -u -f \"node-opcua*\" && npm install",
-    "dev-update:dependencygraph": "depcruise --no-config --include-only ^src --output-type dot src | dot -T svg > dependencygraph.svg"
+    "dev-update:dependencygraph": "depcruise --no-config --include-only ^src --output-type dot src | dot -T svg > dependencygraph.svg",
+    "linting": "npx prettier --write src/"
   },
   "repository": {
     "type": "git",
@@ -45,8 +46,8 @@
     "@types/yargs": "17.0.33",
     "chai": "5.1.2",
     "chalk": "4.1.2",
-    "dependency-cruiser": "16.6.0",
-    "mocha": "10.8.2",
+    "dependency-cruiser": "16.7.0",
+    "mocha": "11.0.1",
     "typescript": "5.7.2"
   }
 }
