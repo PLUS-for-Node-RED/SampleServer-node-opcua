@@ -86,11 +86,19 @@ export const createJobContolLogic = async (
     namespace: namespace,
     optionals: [], // array of string
   });
+
   myMachineIdentification.addReference({
     referenceType: "HasAddIn",
     nodeId: controledMachine,
     isForward: false,
   });
+
+  myMachineIdentification.addReference({
+    referenceType: "HasAddIn",
+    nodeId: machineryBuildingBlocks,
+    isForward: false,
+  });
+
   const manufacturer = myMachineIdentification?.getChildByName(
     "Manufacturer",
   ) as UAVariable;
@@ -120,9 +128,9 @@ export const createJobContolLogic = async (
     `ns=${jobIdx};i=1003`,
   ) as UAObjectType;
 
-  const jobManager = jobManagementType.instantiate({
+  const jobManagement = jobManagementType.instantiate({
     componentOf: controledMachine,
-    browseName: `JobManager`,
+    browseName: `JobManagement`,
     namespace: namespace,
     optionals: [
       // https://reference.opcfoundation.org/ISA95JOBCONTROL/v200/docs/6.2.1
@@ -140,7 +148,7 @@ export const createJobContolLogic = async (
     ],
   } as InstantiateObjectOptions);
 
-  jobManager.addReference({
+  jobManagement.addReference({
     referenceType: "HasAddIn",
     nodeId: machineryBuildingBlocks,
     isForward: false,
@@ -169,10 +177,10 @@ export const createJobContolLogic = async (
     `ns=${ISA95Idx};i=3015`,
   ) as UADataType;
 
-  const JobOrderControl = jobManager.getComponentByName(
+  const JobOrderControl = jobManagement.getComponentByName(
     "JobOrderControl",
   ) as UAObject;
-  const JobOrderResults = jobManager.getComponentByName(
+  const JobOrderResults = jobManagement.getComponentByName(
     "JobOrderResults",
   ) as UAObject;
 
