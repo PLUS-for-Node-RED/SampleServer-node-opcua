@@ -184,6 +184,14 @@ export const createJobContolLogic = async (
     "JobOrderResults",
   ) as UAObject;
 
+  const maxDownloadableJobOrders = JobOrderControl.getPropertyByName(
+    "MaxDownloadableJobOrders",
+  );
+  maxDownloadableJobOrders?.setValueFromSource({
+    value: 2 ** 16 - 1,
+    dataType: DataType.UInt16,
+  });
+
   const ISA95JobOrderStatusEventType = addressSpace!.findNode(
     `ns=${ISA95Idx};i=1006`,
   ) as UAEventType;
@@ -506,12 +514,23 @@ export const createJobContolLogic = async (
     jobs.forEach((job) => {
       switch (job.state) {
         case JobState.AllowedToStart:
-          job.start();
+          if (job.isStartable()) {
+            job.start();
+          }
           break;
         case JobState.Running:
-          setTimeout(() => {
-            job.stop();
-          }, 10 * 1000);
+          if (
+            job.jobOrder.endTime === null ||
+            job.jobOrder.endTime === undefined
+          ) {
+            setTimeout(() => {
+              job.stop();
+            }, 15 * 1000);
+          } else {
+            if (job.isStoppable()) {
+              job.stop();
+            }
+          }
           break;
         default:
           break;

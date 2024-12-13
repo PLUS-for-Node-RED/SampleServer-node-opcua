@@ -15,6 +15,7 @@
 import EventEmitter from "events";
 import { JobState, JobStateNumber } from "./enums";
 import { ISA95JobOrderDataType } from "./interfaces";
+import { DateTime } from "node-opcua";
 
 export class Job extends EventEmitter {
   state: JobState = JobState.NotAllowedToStart;
@@ -26,7 +27,34 @@ export class Job extends EventEmitter {
   constructor(jobOrder: ISA95JobOrderDataType) {
     super();
     this.jobOrder = jobOrder;
+    this.changed();
+  }
+
+  private changed() {
     this.emit("changed", this);
+  }
+
+  isStartable(): boolean {
+    if (this.state !== JobState.AllowedToStart) return false;
+    const planedStart: DateTime = this.jobOrder.startTime;
+    if (planedStart === null) return true;
+    if (planedStart === undefined) return true;
+    if (planedStart.getTime() <= new Date().getTime()) {
+      return true;
+    } else {
+      return false;
+    }
+  }
+
+  isStoppable(): boolean {
+    const planedEnd: DateTime = this.jobOrder.endTime;
+    if (planedEnd === null) return true;
+    if (planedEnd === undefined) return true;
+    if (planedEnd.getTime() <= new Date().getTime()) {
+      return true;
+    } else {
+      return false;
+    }
   }
 
   getJobOrderAndState(): any {
@@ -50,7 +78,7 @@ export class Job extends EventEmitter {
       this.state === JobState.NotAllowedToStart
     ) {
       this.jobOrder = jobOrder;
-      this.emit("changed", this);
+      this.changed();
       return true;
     } else {
       return false;
@@ -62,7 +90,7 @@ export class Job extends EventEmitter {
       case JobState.AllowedToStart:
         this.state = JobState.NotAllowedToStart;
         this.stateNumber = JobStateNumber.NotAllowedToStart;
-        this.emit("changed", this);
+        this.changed();
         return true;
       default:
         return false;
@@ -75,12 +103,12 @@ export class Job extends EventEmitter {
         this.state = JobState.Running;
         this.stateNumber = JobStateNumber.Running;
         this.startTime = new Date();
-        this.emit("changed", this);
+        this.changed();
         return true;
       case JobState.NotAllowedToStart:
         this.state = JobState.AllowedToStart;
         this.stateNumber = JobStateNumber.AllowedToStart;
-        this.emit("changed", this);
+        this.changed();
         return true;
       default:
         return false;
@@ -93,13 +121,13 @@ export class Job extends EventEmitter {
         this.state = JobState.Ended;
         this.stateNumber = JobStateNumber.Ended;
         this.endTime = new Date();
-        this.emit("changed", this);
+        this.changed();
         return true;
       case JobState.Interrupted:
         this.state = JobState.Ended;
         this.stateNumber = JobStateNumber.Ended;
         this.endTime = new Date();
-        this.emit("changed", this);
+        this.changed();
         return true;
       default:
         return false;
@@ -111,22 +139,22 @@ export class Job extends EventEmitter {
       case JobState.AllowedToStart:
         this.state = JobState.Aborted;
         this.stateNumber = JobStateNumber.Aborted;
-        this.emit("changed", this);
+        this.changed();
         return true;
       case JobState.NotAllowedToStart:
         this.state = JobState.Aborted;
         this.stateNumber = JobStateNumber.Aborted;
-        this.emit("changed", this);
+        this.changed();
         return true;
       case JobState.Running:
         this.state = JobState.Aborted;
         this.stateNumber = JobStateNumber.Aborted;
-        this.emit("changed", this);
+        this.changed();
         return true;
       case JobState.Interrupted:
         this.state = JobState.Aborted;
         this.stateNumber = JobStateNumber.Aborted;
-        this.emit("changed", this);
+        this.changed();
         return true;
       default:
         return false;
@@ -138,7 +166,7 @@ export class Job extends EventEmitter {
       case JobState.Running:
         this.state = JobState.Interrupted;
         this.stateNumber = JobStateNumber.Interrupted;
-        this.emit("changed", this);
+        this.changed();
         return true;
       default:
         return false;
@@ -150,7 +178,7 @@ export class Job extends EventEmitter {
       case JobState.Interrupted:
         this.state = JobState.Running;
         this.stateNumber = JobStateNumber.Running;
-        this.emit("changed", this);
+        this.changed();
         return true;
       default:
         return false;
@@ -160,7 +188,7 @@ export class Job extends EventEmitter {
   cancel(): boolean {
     this.state = JobState.NotAllowedToStart;
     this.stateNumber = JobStateNumber.NotAllowedToStart;
-    this.emit("changed", this.jobOrder);
+    this.changed();
     return true;
   }
 }
